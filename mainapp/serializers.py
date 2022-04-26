@@ -17,7 +17,13 @@ class PostReactionSerializer(serializers.ModelSerializer):
         model = PostReaction
         fields = ['id']
 
-class CommentSerializer(serializers.ModelSerializer):
+class CommentCreateSerializer(serializers.ModelSerializer):
+    author = serializers.ReadOnlyField(source='author.username')
+    class Meta:
+        model = Comment
+        fields = ['id', 'content', 'author', 'created_at']
+
+class CommentRetrieveSerializer(serializers.ModelSerializer):
     author = serializers.ReadOnlyField(source='author.username')
     likes = serializers.SerializerMethodField()
     class Meta:
