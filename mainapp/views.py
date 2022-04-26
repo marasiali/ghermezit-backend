@@ -3,6 +3,8 @@ from rest_framework import generics, permissions, mixins, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
+from mainapp.pagination import CommentPagination, PostPagination
+
 from .models import Post, PostReaction, Comment, CommentReaction
 from .serializers import CommentCreateSerializer, PostSerializer, PostReactionSerializer, CommentRetrieveSerializer, CommentReactionSerializer
 from .permissions import IsAuthorOrReadOnly
@@ -12,6 +14,7 @@ class PostList(generics.ListCreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes=[permissions.IsAuthenticatedOrReadOnly]
+    pagination_class = PostPagination
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -75,6 +78,7 @@ class PostDislikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
 
 class CommentList(generics.ListCreateAPIView):
     permission_classes=[permissions.IsAuthenticatedOrReadOnly]
+    pagination_class = CommentPagination
 
     def get_queryset(self):
         post = get_object_or_404(Post, pk=self.kwargs['pk'])
