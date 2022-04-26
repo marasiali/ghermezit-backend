@@ -29,8 +29,7 @@ urlpatterns = [
     path('api/posts/<int:pk>/create-comment/', views.CommentCreate.as_view()),
     path('api/comments/<int:pk>/like/', views.CommentLikeCreate.as_view()),
     path('api/comments/<int:pk>/dislike/', views.CommentDislikeCreate.as_view()),
-    # path('api-auth/', include('rest_framework.urls')),
     path('api/rest-auth/', include('dj_rest_auth.urls')),
-    path('api/rest-auth/registration/', include('dj_rest_auth.registration.urls'))
+    path('api/rest-auth/registration/', include('dj_rest_auth.registration.urls')),
 
 ]

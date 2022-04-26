@@ -111,6 +111,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+    ],
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
@@ -125,6 +130,9 @@ USE_TZ = True
 
 SITE_ID = 1
 
+REST_USE_JWT = True
+JWT_AUTH_COOKIE = 'ghermezit-auth'
+JWT_AUTH_REFRESH_COOKIE = 'ghermezit-refresh-token'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
