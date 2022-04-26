@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404, render
-from rest_framework import generics, permissions, mixins, status
+from django.db.models import Count, Q
+from rest_framework import generics, permissions, mixins, status, filters
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
@@ -11,10 +12,19 @@ from .permissions import IsAuthorOrReadOnly
 
 
 class PostList(generics.ListCreateAPIView):
-    queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes=[permissions.IsAuthenticatedOrReadOnly]
     pagination_class = PostPagination
+    filter_backends = [filters.OrderingFilter, filters.SearchFilter]
+    ordering_fields = ['created_at', 'likes']
+    search_fields = ['title', 'content']
+
+    def get_queryset(self):
+        queryset = Post.objects.all()
+        queryset = queryset.annotate(
+            likes=Count('postreaction', filter=Q(postreaction__isLike=True)) - Count('postreaction', filter=Q(postreaction__isLike=False))
+        )
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -78,11 +88,17 @@ class PostDislikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
 
 class CommentList(generics.ListCreateAPIView):
     permission_classes=[permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['created_at', 'likes']
     pagination_class = CommentPagination
 
     def get_queryset(self):
         post = get_object_or_404(Post, pk=self.kwargs['pk'])
-        return Comment.objects.filter(post=post)
+        queryset = Comment.objects.filter(post=post)
+        queryset = queryset.annotate(
+            likes=Count('commentreaction', filter=Q(commentreaction__isLike=True)) - Count('commentreaction', filter=Q(commentreaction__isLike=False))
+        )
+        return queryset
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
