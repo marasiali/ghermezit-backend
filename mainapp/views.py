@@ -13,6 +13,14 @@ from .permissions import IsAuthorOrReadOnly
 
 
 class PostListCreate(generics.ListCreateAPIView):
+    """For filter results based on a condition, use the `filter` query parameter with one of the following values:
+        
+        - `liked`
+
+        - `disliked`
+
+        - `me`
+    """
     serializer_class = PostSerializer
     permission_classes=[permissions.IsAuthenticatedOrReadOnly]
     pagination_class = PostPagination
@@ -21,7 +29,15 @@ class PostListCreate(generics.ListCreateAPIView):
     search_fields = ['title', 'content']
 
     def get_queryset(self):
-        queryset = Post.objects.all()
+        filter_param = self.request.query_params.get('filter')
+        if filter_param == 'liked':
+            queryset = Post.objects.filter(postreaction__isLike=True)
+        elif filter_param == 'disliked':
+            queryset = Post.objects.filter(postreaction__isLike=False)
+        elif filter_param == 'me':
+            queryset = Post.objects.filter(author=self.request.user)
+        else:
+            queryset = Post.objects.all()
         queryset = queryset.annotate(
             likes=Count('postreaction', filter=Q(postreaction__isLike=True)) - Count('postreaction', filter=Q(postreaction__isLike=False))
         )
