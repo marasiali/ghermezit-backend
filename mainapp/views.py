@@ -1,3 +1,4 @@
+from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.db.models import Count, Q
 from rest_framework import generics, permissions, mixins, status, filters
@@ -11,7 +12,7 @@ from .serializers import CommentCreateSerializer, PostSerializer, PostReactionSe
 from .permissions import IsAuthorOrReadOnly
 
 
-class PostList(generics.ListCreateAPIView):
+class PostListCreate(generics.ListCreateAPIView):
     serializer_class = PostSerializer
     permission_classes=[permissions.IsAuthenticatedOrReadOnly]
     pagination_class = PostPagination
@@ -86,7 +87,7 @@ class PostDislikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
         else:
             raise ValidationError("You never disliked this post!")
 
-class CommentList(generics.ListCreateAPIView):
+class CommentListCreate(generics.ListCreateAPIView):
     permission_classes=[permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['created_at', 'likes']
@@ -110,9 +111,18 @@ class CommentList(generics.ListCreateAPIView):
         serializer.save(author=self.request.user, post=post)
 
 class CommentRetrieveDestroy(generics.RetrieveDestroyAPIView):
-    queryset = Comment.objects.all()
     serializer_class = CommentRetrieveSerializer
     permission_classes=[permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+
+    def get_queryset(self):
+        try:
+            queryset = Comment.objects.filter(pk=self.kwargs['pk'])
+            queryset = queryset.annotate(
+                likes=Count('commentreaction', filter=Q(commentreaction__isLike=True)) - Count('commentreaction', filter=Q(commentreaction__isLike=False))
+            )
+        except Comment.DoesNotExist:
+            raise Http404('Comment does not exist')
+        return queryset
 
 
 class CommentLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
