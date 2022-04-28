@@ -15,23 +15,20 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from mainapp import views
 from dj_rest_auth.views import PasswordResetConfirmView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/posts/', views.PostList.as_view()),
-    path('api/posts/<int:pk>/', views.PostRetrieveDestroy.as_view()),
-    path('api/create-post/', views.PostCreate.as_view()),
-    path('api/posts/<int:pk>/like/', views.PostLikeCreate.as_view()),
-    path('api/posts/<int:pk>/dislike/', views.PostDislikeCreate.as_view()),
-    path('api/posts/<int:pk>/comments/', views.CommentList.as_view()),
-    path('api/comments/<int:pk>/', views.CommentRetrieveDestroy.as_view()),
-    path('api/posts/<int:pk>/create-comment/', views.CommentCreate.as_view()),
-    path('api/comments/<int:pk>/like/', views.CommentLikeCreate.as_view()),
-    path('api/comments/<int:pk>/dislike/', views.CommentDislikeCreate.as_view()),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    path('api-auth/', include('rest_framework.urls')),
     path('api/rest-auth/', include('dj_rest_auth.urls')),
     path('api/rest-auth/registration/', include('dj_rest_auth.registration.urls')),
     path('password/reset/confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    
+    path('api/', include('mainapp.api_urls')),
 
 ]
