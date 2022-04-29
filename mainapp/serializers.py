@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Post, Comment, PostReaction, CommentReaction
+from .models import Post, Comment, PostReaction, CommentReaction, UserProfile
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -29,11 +29,14 @@ class PostReactionSerializer(serializers.ModelSerializer):
         model = PostReaction
         fields = ['id']
 
+
 class CommentCreateSerializer(serializers.ModelSerializer):
     author = serializers.ReadOnlyField(source='author.username')
+
     class Meta:
         model = Comment
         fields = ['id', 'content', 'author', 'created_at']
+
 
 class CommentRetrieveSerializer(serializers.ModelSerializer):
     author = serializers.ReadOnlyField(source='author.username')
@@ -51,14 +54,19 @@ class CommentRetrieveSerializer(serializers.ModelSerializer):
             except CommentReaction.DoesNotExist:
                 return 0
         return None
-    
+
     class Meta:
         model = Comment
         fields = ['id', 'content', 'author', 'post', 'created_at', 'like_status', 'likes']
-
 
 
 class CommentReactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommentReaction
         fields = ['id']
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['id', 'avatar', 'bio']

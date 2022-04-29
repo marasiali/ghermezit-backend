@@ -12,4 +12,5 @@ urlpatterns = [
     path('comment/<int:pk>/', views.CommentRetrieveDestroy.as_view()),
     path('comment/<int:pk>/like/', views.CommentLikeCreate.as_view()),
     path('comment/<int:pk>/dislike/', views.CommentDislikeCreate.as_view()),
+    path('update-profile/<int:pk>/', views.UserProfileUpdate.as_view()),
 ]

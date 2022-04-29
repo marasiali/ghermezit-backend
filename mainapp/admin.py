@@ -1,7 +1,8 @@
 from django.contrib import admin
-from .models import Post, Comment, PostReaction, CommentReaction
+from . import models
 # Register your models here.
-admin.site.register(Post)
-admin.site.register(Comment)
-admin.site.register(PostReaction)
-admin.site.register(CommentReaction)
+admin.site.register(models.Post)
+admin.site.register(models.Comment)
+admin.site.register(models.PostReaction)
+admin.site.register(models.CommentReaction)
+admin.site.register(models.UserProfile)
