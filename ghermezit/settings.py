@@ -137,6 +137,7 @@ SITE_ID = 1
 REST_USE_JWT = True
 JWT_AUTH_COOKIE = 'ghermezit-auth'
 JWT_AUTH_REFRESH_COOKIE = 'ghermezit-refresh-token'
+ACCOUNT_EMAIL_VERIFICATION = "none"
 
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
