@@ -1,7 +1,8 @@
+from random import randint
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from mainapp.models import Comment
+from mainapp.models import ActivationCode, Comment, User
 from django.core.mail import send_mail
 
 
@@ -20,3 +21,11 @@ def send_email_notification_for_comment(sender, instance, created, **kwargs):
         from_email=None,
         recipient_list=[instance.post.author.email],
     )
+
+@receiver(post_save, sender=User)
+def send_activation_code(sender, instance, created, **kwargs):
+    if created:
+        code = str(randint(100000, 999999))
+        ActivationCode.objects.create(user=instance, code=code)
+        print(code)
+        # TODO: send sms

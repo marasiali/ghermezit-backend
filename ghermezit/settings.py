@@ -170,7 +170,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 AUTH_USER_MODEL = 'mainapp.User'
 
 REST_AUTH_REGISTER_SERIALIZERS = {
-    'REGISTER_SERIALIZER': 'mainapp.serializers.CustomRegisterSerializer',
+    'REGISTER_SERIALIZER': 'mainapp.serializers.EmailPhonenumberRegisterSerializer',
 }
 
 AUTHENTICATION_BACKENDS = ('mainapp.backends.EmailOrPhoneModelBackend',)

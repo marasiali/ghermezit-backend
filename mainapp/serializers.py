@@ -1,9 +1,9 @@
 from rest_framework import serializers
-from .models import Post, Comment, PostReaction, CommentReaction, User
+from .models import ActivationCode, Post, Comment, PostReaction, CommentReaction, User
 from django.db import transaction
 from dj_rest_auth.registration.serializers import RegisterSerializer
 
-class CustomRegisterSerializer(RegisterSerializer):
+class EmailPhonenumberRegisterSerializer(RegisterSerializer):
     phone_number = serializers.CharField(max_length=20, required=False)
 
     def validate(self, data):
@@ -24,6 +24,12 @@ class CustomRegisterSerializer(RegisterSerializer):
         user.phone_number = self.data.get('phone_number')
         user.save()
         return user
+
+
+class ActivationCodeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ActivationCode
+        fields = ['code']
 
 
 class PostSerializer(serializers.ModelSerializer):
