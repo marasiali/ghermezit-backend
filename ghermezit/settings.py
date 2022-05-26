@@ -174,3 +174,5 @@ REST_AUTH_REGISTER_SERIALIZERS = {
 }
 
 AUTHENTICATION_BACKENDS = ('mainapp.backends.EmailOrPhoneModelBackend',)
+
+GHASEDAK_API_KEY = ""

@@ -25,6 +25,11 @@ class EmailPhonenumberRegisterSerializer(RegisterSerializer):
         user.save()
         return user
 
+    def get_cleaned_data(self):
+        cleaned_data = super().get_cleaned_data()
+        cleaned_data['phone_number'] = self.data.get('phone_number')
+        return cleaned_data
+
 
 class ActivationCodeSerializer(serializers.ModelSerializer):
     class Meta:
