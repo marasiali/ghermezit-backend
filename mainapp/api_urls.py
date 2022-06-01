@@ -12,5 +12,8 @@ urlpatterns = [
     path('comment/<int:pk>/', views.CommentRetrieveDestroy.as_view()),
     path('comment/<int:pk>/like/', views.CommentLikeCreate.as_view()),
     path('comment/<int:pk>/dislike/', views.CommentDislikeCreate.as_view()),
+    path('rest-auth/registration/phone/activate', views.ActivatePhonenumber.as_view()),
+    path('rest-auth/registration/phone/send-activation-code', views.SendPhonenumberActivationCode.as_view()),
+    path('rest-auth/registration/phone/reset-password-confirm', views.PasswordResetConfirmByPhoneActivationCode.as_view()),
     path('DayOccasions', views.DayOccasions.as_view(), name="DayOccasions"),
 ]

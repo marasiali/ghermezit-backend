@@ -1,16 +1,18 @@
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.db.models import Count, Q
-from rest_framework import generics, permissions, mixins, status, filters
+from django.contrib.auth import get_user_model
+from rest_framework import generics, permissions, mixins, status, filters, serializers
+from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-from rest_framework.views import APIView
-
+from dj_rest_auth.registration.views import RegisterView as DefaultRegisterView
+from drf_spectacular.utils import extend_schema, inline_serializer
 from mainapp.pagination import CommentPagination, PostPagination
+from mainapp.utils import generate_and_send_activation_code
 
-from .models import Post, PostReaction, Comment, CommentReaction
-from .serializers import CommentCreateSerializer, PostSerializer, PostReactionSerializer, CommentRetrieveSerializer, \
-    CommentReactionSerializer
+from .models import ActivationCode, Post, PostReaction, Comment, CommentReaction
+from .serializers import ActivationCodeSerializer, CommentCreateSerializer, PasswordResetConfirmByPhoneActivationCodeSerializer, PostSerializer, PostReactionSerializer, CommentRetrieveSerializer, CommentReactionSerializer
 from .permissions import IsAuthorOrReadOnly
 import requests
 from persiantools.jdatetime import JalaliDate
@@ -207,6 +209,68 @@ class CommentDislikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
         else:
             raise ValidationError("You never disliked this comment!")
 
+            
+class SendPhonenumberActivationCode(APIView):
+    @extend_schema(
+        request=inline_serializer(
+           name='phone_number',
+           fields={
+               'phone_number': serializers.CharField(),
+           }
+        )
+    )
+    def post(self, request, *args, **kwargs):
+        try:
+            user = get_user_model().objects.get(phone_number=request.data.get('phone_number'))
+        except get_user_model().DoesNotExist:
+            raise ValidationError({'message': 'This phone number doesn\'nt exist!'})
+        if user.activationcode_set.exists() and user.activationcode_set.first().is_fresh():
+            raise ValidationError({'message': 'Cannot send new activation code within 120 seconds!'})
+        generate_and_send_activation_code(user)
+        return Response({'message': 'Activation code has been sent!'})
+
+class ActivatePhonenumber(generics.GenericAPIView):
+    serializer_class = ActivationCodeSerializer
+
+    def post(self, request, *args, **kwargs):
+        activation_code_serializer = self.get_serializer(data=request.data)
+        if activation_code_serializer.is_valid():
+            phone_number = activation_code_serializer.validated_data['phone_number']
+            code = activation_code_serializer.validated_data['code']
+            try:
+                activation_code_object = ActivationCode.objects.get(user__phone_number=phone_number, code=code)
+                if not activation_code_object.is_fresh():
+                    raise ActivationCode.DoesNotExist
+            except ActivationCode.DoesNotExist as e:
+                raise ValidationError({'message': 'The activation code is invalid or expired!'})
+            
+            activation_code_object.user.is_phone_number_activated = True
+            activation_code_object.user.save()
+            activation_code_object.delete()
+            return Response({'message': 'User activated successfully.'})
+        else:
+            raise ValidationError({'message': activation_code_serializer.errors})
+
+
+class PasswordResetConfirmByPhoneActivationCode(generics.GenericAPIView):
+    serializer_class = PasswordResetConfirmByPhoneActivationCodeSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'detail': 'New password has been saved.'})
+        
+class RegisterView(DefaultRegisterView):
+    def get_response_data(self, user):
+        return {'detail': 'User registered successfully!'}
+
+    def perform_create(self, serializer):
+        user = serializer.save(self.request)
+        email = user.emailaddress_set.first()
+        if email:
+            email.send_confirmation()
+        return user
 
 class DayOccasions(APIView):
     def get(self, request):
