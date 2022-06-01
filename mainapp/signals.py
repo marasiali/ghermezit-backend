@@ -4,7 +4,7 @@ from django.dispatch import receiver
 
 from mainapp.models import ActivationCode, Comment, User
 from django.core.mail import send_mail
-from .utils import send_activation_code_sms
+from .utils import generate_and_send_activation_code
 
 @receiver(post_save, sender=Comment)
 def send_email_notification_for_comment(sender, instance, created, **kwargs):
@@ -27,7 +27,4 @@ def send_activation_code(sender, instance: User, **kwargs):
     if instance.id is not None:
         previous = User.objects.get(id=instance.id)
         if previous.phone_number != instance.phone_number:
-            code = str(randint(100000, 999999))
-            ActivationCode.objects.create(user=instance, code=code)
-            print(f'Activation code generated: {code})')
-            send_activation_code_sms(instance.phone_number, code)
+            generate_and_send_activation_code(instance)

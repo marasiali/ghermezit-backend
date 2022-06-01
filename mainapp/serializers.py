@@ -31,10 +31,9 @@ class EmailPhonenumberRegisterSerializer(RegisterSerializer):
         return cleaned_data
 
 
-class ActivationCodeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ActivationCode
-        fields = ['code']
+class ActivationCodeSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(max_length=20)
+    code = serializers.CharField(max_length=6)
 
 
 class PostSerializer(serializers.ModelSerializer):

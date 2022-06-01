@@ -137,7 +137,7 @@ SITE_ID = 1
 REST_USE_JWT = True
 JWT_AUTH_COOKIE = 'ghermezit-auth'
 JWT_AUTH_REFRESH_COOKIE = 'ghermezit-refresh-token'
-ACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_EMAIL_VERIFICATION = "optional" # verifying email is required when an email entered. but this must be set to optional for customizing.
 
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -174,5 +174,7 @@ REST_AUTH_REGISTER_SERIALIZERS = {
 }
 
 AUTHENTICATION_BACKENDS = ('mainapp.backends.EmailOrPhoneModelBackend',)
+ACTIVATION_CODE_TIME_LIMIT = 120
 
+SMS_ENABLED = False
 GHASEDAK_API_KEY = ""
