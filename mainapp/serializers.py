@@ -1,8 +1,11 @@
+from django.forms import ValidationError
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import SetPasswordForm
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from .models import ActivationCode, Post, Comment, PostReaction, CommentReaction, User
 from django.db import transaction
 from dj_rest_auth.registration.serializers import RegisterSerializer
-
 class EmailPhonenumberRegisterSerializer(RegisterSerializer):
     phone_number = serializers.CharField(max_length=20, required=False)
 
@@ -35,6 +38,39 @@ class ActivationCodeSerializer(serializers.Serializer):
     phone_number = serializers.CharField(max_length=20)
     code = serializers.CharField(max_length=6)
 
+
+class PasswordResetConfirmByPhoneActivationCodeSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(max_length=20)
+    code = serializers.CharField(max_length=6)
+    new_password1 = serializers.CharField(max_length=128)
+    new_password2 = serializers.CharField(max_length=128)
+
+    set_password_form = None
+    activation_code_object = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def validate(self, data):
+        self.user = get_object_or_404(get_user_model(), phone_number=data['phone_number'])
+        try:
+            self.activation_code_object = ActivationCode.objects.get(user__phone_number=data['phone_number'], code=data['code'])
+            if not self.activation_code_object.is_fresh():
+                raise ActivationCode.DoesNotExist
+        except ActivationCode.DoesNotExist as e:
+            raise ValidationError({'message': 'The activation code is invalid or expired!'})
+            
+        self.set_password_form = SetPasswordForm(
+            user=self.user, data=data,
+        )
+
+        if not self.set_password_form.is_valid():
+            raise serializers.ValidationError(self.set_password_form.errors)
+        return data
+
+    def save(self):
+        self.activation_code_object.delete()
+        self.set_password_form.save()
 
 class PostSerializer(serializers.ModelSerializer):
     author = serializers.ReadOnlyField(source='author.username')

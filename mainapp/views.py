@@ -12,7 +12,7 @@ from mainapp.pagination import CommentPagination, PostPagination
 from mainapp.utils import generate_and_send_activation_code
 
 from .models import ActivationCode, Post, PostReaction, Comment, CommentReaction
-from .serializers import ActivationCodeSerializer, CommentCreateSerializer, PostSerializer, PostReactionSerializer, CommentRetrieveSerializer, CommentReactionSerializer
+from .serializers import ActivationCodeSerializer, CommentCreateSerializer, PasswordResetConfirmByPhoneActivationCodeSerializer, PostSerializer, PostReactionSerializer, CommentRetrieveSerializer, CommentReactionSerializer
 from .permissions import IsAuthorOrReadOnly
 
 
@@ -228,6 +228,16 @@ class ActivatePhonenumber(APIView):
             return Response({'message': 'User activated successfully.'})
         else:
             raise ValidationError({'message': activation_code_serializer.errors})
+
+
+class PasswordResetConfirmByPhoneActivationCode(generics.GenericAPIView):
+    serializer_class = PasswordResetConfirmByPhoneActivationCodeSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'detail': 'New password has been saved.'})
         
 class RegisterView(DefaultRegisterView):
     def get_response_data(self, user):
