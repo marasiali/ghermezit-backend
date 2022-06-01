@@ -2,12 +2,12 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.db.models import Count, Q
 from django.contrib.auth import get_user_model
-from rest_framework import generics, permissions, mixins, status, filters
+from rest_framework import generics, permissions, mixins, status, filters, serializers
 from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from dj_rest_auth.registration.views import RegisterView as DefaultRegisterView
-
+from drf_spectacular.utils import extend_schema, inline_serializer
 from mainapp.pagination import CommentPagination, PostPagination
 from mainapp.utils import generate_and_send_activation_code
 
@@ -199,6 +199,14 @@ class CommentDislikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
 
 
 class SendPhonenumberActivationCode(APIView):
+    @extend_schema(
+        request=inline_serializer(
+           name='phone_number',
+           fields={
+               'phone_number': serializers.CharField(),
+           }
+        )
+    )
     def post(self, request, *args, **kwargs):
         try:
             user = get_user_model().objects.get(phone_number=request.data.get('phone_number'))
@@ -209,9 +217,11 @@ class SendPhonenumberActivationCode(APIView):
         generate_and_send_activation_code(user)
         return Response({'message': 'Activation code has been sent!'})
 
-class ActivatePhonenumber(APIView):
+class ActivatePhonenumber(generics.GenericAPIView):
+    serializer_class = ActivationCodeSerializer
+
     def post(self, request, *args, **kwargs):
-        activation_code_serializer = ActivationCodeSerializer(data=request.data)
+        activation_code_serializer = self.get_serializer(data=request.data)
         if activation_code_serializer.is_valid():
             phone_number = activation_code_serializer.validated_data['phone_number']
             code = activation_code_serializer.validated_data['code']
