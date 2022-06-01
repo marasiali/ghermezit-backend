@@ -30,5 +30,6 @@ urlpatterns = [
     path('password/reset/confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     
     path('api/', include('mainapp.api_urls')),
+    path('api/captcha/', include('rest_captcha.urls')),
 
 ]
