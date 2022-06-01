@@ -14,6 +14,8 @@ from mainapp.utils import generate_and_send_activation_code
 from .models import ActivationCode, Post, PostReaction, Comment, CommentReaction
 from .serializers import ActivationCodeSerializer, CommentCreateSerializer, PasswordResetConfirmByPhoneActivationCodeSerializer, PostSerializer, PostReactionSerializer, CommentRetrieveSerializer, CommentReactionSerializer
 from .permissions import IsAuthorOrReadOnly
+import requests
+from persiantools.jdatetime import JalaliDate
 
 
 class PostListCreate(generics.ListCreateAPIView):
@@ -26,7 +28,7 @@ class PostListCreate(generics.ListCreateAPIView):
         - `me`
     """
     serializer_class = PostSerializer
-    permission_classes=[permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     pagination_class = PostPagination
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
     ordering_fields = ['created_at', 'likes']
@@ -43,21 +45,24 @@ class PostListCreate(generics.ListCreateAPIView):
         else:
             queryset = Post.objects.all()
         queryset = queryset.annotate(
-            likes=Count('postreaction', filter=Q(postreaction__isLike=True)) - Count('postreaction', filter=Q(postreaction__isLike=False))
+            likes=Count('postreaction', filter=Q(postreaction__isLike=True)) - Count('postreaction', filter=Q(
+                postreaction__isLike=False))
         )
         return queryset
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
+
 class PostRetrieveDestroy(generics.RetrieveDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes=[permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+
 
 class PostLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
     serializer_class = PostReactionSerializer
-    permission_classes=[permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         self.this_post = get_object_or_404(Post, pk=self.kwargs['pk'])
@@ -69,7 +74,7 @@ class PostLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
             if react_object.isLike:
                 raise ValidationError("You have already liked this post!")
             else:
-                react_object.isLike=True
+                react_object.isLike = True
                 react_object.save()
         else:
             serializer.save(author=self.request.user, post=self.this_post, isLike=True)
@@ -81,9 +86,10 @@ class PostLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
         else:
             raise ValidationError("You never liked this post!")
 
+
 class PostDislikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
     serializer_class = PostReactionSerializer
-    permission_classes=[permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         self.this_post = get_object_or_404(Post, pk=self.kwargs['pk'])
@@ -99,7 +105,7 @@ class PostDislikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
                 react_object.save()
         else:
             serializer.save(author=self.request.user, post=self.this_post, isLike=False)
-        
+
     def delete(self, request, *args, **kwargs):
         deleted_react_count, _ = self.get_queryset().delete()
         if deleted_react_count != 0:
@@ -107,8 +113,9 @@ class PostDislikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
         else:
             raise ValidationError("You never disliked this post!")
 
+
 class CommentListCreate(generics.ListCreateAPIView):
-    permission_classes=[permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['created_at', 'likes']
     pagination_class = CommentPagination
@@ -117,7 +124,8 @@ class CommentListCreate(generics.ListCreateAPIView):
         post = get_object_or_404(Post, pk=self.kwargs['pk'])
         queryset = Comment.objects.filter(post=post)
         queryset = queryset.annotate(
-            likes=Count('commentreaction', filter=Q(commentreaction__isLike=True)) - Count('commentreaction', filter=Q(commentreaction__isLike=False))
+            likes=Count('commentreaction', filter=Q(commentreaction__isLike=True)) - Count('commentreaction', filter=Q(
+                commentreaction__isLike=False))
         )
         return queryset
 
@@ -130,15 +138,18 @@ class CommentListCreate(generics.ListCreateAPIView):
         post = get_object_or_404(Post, pk=self.kwargs['pk'])
         serializer.save(author=self.request.user, post=post)
 
+
 class CommentRetrieveDestroy(generics.RetrieveDestroyAPIView):
     serializer_class = CommentRetrieveSerializer
-    permission_classes=[permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
 
     def get_queryset(self):
         try:
             queryset = Comment.objects.filter(pk=self.kwargs['pk'])
             queryset = queryset.annotate(
-                likes=Count('commentreaction', filter=Q(commentreaction__isLike=True)) - Count('commentreaction', filter=Q(commentreaction__isLike=False))
+                likes=Count('commentreaction', filter=Q(commentreaction__isLike=True)) - Count('commentreaction',
+                                                                                               filter=Q(
+                                                                                                   commentreaction__isLike=False))
             )
         except Comment.DoesNotExist:
             raise Http404('Comment does not exist')
@@ -147,7 +158,7 @@ class CommentRetrieveDestroy(generics.RetrieveDestroyAPIView):
 
 class CommentLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
     serializer_class = CommentReactionSerializer
-    permission_classes=[permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         self.comment = Comment.objects.get(pk=self.kwargs['pk'])
@@ -159,11 +170,11 @@ class CommentLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
             if react_object.isLike:
                 raise ValidationError("You have already liked this comment!")
             else:
-                react_object.isLike=True
+                react_object.isLike = True
                 react_object.save()
         else:
             serializer.save(author=self.request.user, comment=self.comment, isLike=True)
-        
+
     def delete(self, request, *args, **kwargs):
         deleted_react_count, _ = self.get_queryset().delete()
         if deleted_react_count != 0:
@@ -171,9 +182,10 @@ class CommentLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
         else:
             raise ValidationError("You never liked this comment!")
 
+
 class CommentDislikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
     serializer_class = CommentReactionSerializer
-    permission_classes=[permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         self.comment = Comment.objects.get(pk=self.kwargs['pk'])
@@ -185,7 +197,7 @@ class CommentDislikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
             if not react_object.isLike:
                 raise ValidationError("You have already disliked this comment!")
             else:
-                react_object.isLike=False
+                react_object.isLike = False
                 react_object.save()
         else:
             serializer.save(author=self.request.user, comment=self.comment, isLike=False)
@@ -197,7 +209,7 @@ class CommentDislikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
         else:
             raise ValidationError("You never disliked this comment!")
 
-
+            
 class SendPhonenumberActivationCode(APIView):
     @extend_schema(
         request=inline_serializer(
@@ -259,3 +271,13 @@ class RegisterView(DefaultRegisterView):
         if email:
             email.send_confirmation()
         return user
+
+class DayOccasions(APIView):
+    def get(self, request):
+        day = JalaliDate.today().day
+        month = JalaliDate.today().month
+        year = JalaliDate.today().year
+        api_url = "http://persiancalapi.ir/jalali/{year}/{month}/{day}".format(year=year, month=month, day=day)
+        response = requests.get(api_url)
+        dayOccasions = response.json()
+        return Response(dayOccasions)

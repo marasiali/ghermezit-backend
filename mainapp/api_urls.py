@@ -15,4 +15,5 @@ urlpatterns = [
     path('rest-auth/registration/phone/activate', views.ActivatePhonenumber.as_view()),
     path('rest-auth/registration/phone/send-activation-code', views.SendPhonenumberActivationCode.as_view()),
     path('rest-auth/registration/phone/reset-password-confirm', views.PasswordResetConfirmByPhoneActivationCode.as_view()),
+    path('DayOccasions', views.DayOccasions.as_view(), name="DayOccasions"),
 ]
