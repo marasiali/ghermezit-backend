@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from dj_rest_auth.registration.views import RegisterView as DefaultRegisterView
 from drf_spectacular.utils import extend_schema, inline_serializer
 from mainapp.pagination import CommentPagination, PostPagination
-from mainapp.utils import generate_and_send_activation_code
+from mainapp.utils import generate_activation_code, get_sms_manager
 
 from .models import ActivationCode, Post, PostReaction, Comment, CommentReaction
 from .serializers import ActivationCodeSerializer, CommentCreateSerializer, PasswordResetConfirmByPhoneActivationCodeSerializer, PostSerializer, PostReactionSerializer, CommentRetrieveSerializer, CommentReactionSerializer
@@ -226,7 +226,8 @@ class SendPhonenumberActivationCode(APIView):
             raise ValidationError({'message': 'This phone number doesn\'nt exist!'})
         if user.activationcode_set.exists() and user.activationcode_set.first().is_fresh():
             raise ValidationError({'message': 'Cannot send new activation code within 120 seconds!'})
-        generate_and_send_activation_code(user)
+        code = generate_activation_code(user)
+        get_sms_manager().send_activation_code(user.phone_number, code)
         return Response({'message': 'Activation code has been sent!'})
 
 class ActivatePhonenumber(generics.GenericAPIView):
