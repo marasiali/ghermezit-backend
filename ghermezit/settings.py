@@ -176,5 +176,6 @@ REST_AUTH_REGISTER_SERIALIZERS = {
 AUTHENTICATION_BACKENDS = ('mainapp.backends.EmailOrPhoneModelBackend',)
 ACTIVATION_CODE_TIME_LIMIT = 120
 
-SMS_ENABLED = False
+SMS_BACKEND = 'console' # values: 'console', 'ghasedak', 'kavenegar'
 GHASEDAK_API_KEY = ""
+KAVENEGAR_API_KEY = ""

@@ -2,9 +2,9 @@ from random import randint
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
-from mainapp.models import ActivationCode, Comment, User
+from mainapp.models import Comment, User
 from django.core.mail import send_mail
-from .utils import generate_and_send_activation_code
+from .utils import generate_activation_code, get_sms_manager
 
 @receiver(post_save, sender=Comment)
 def send_email_notification_for_comment(sender, instance, created, **kwargs):
@@ -27,4 +27,5 @@ def send_activation_code(sender, instance: User, **kwargs):
     if instance.id is not None:
         previous = User.objects.get(id=instance.id)
         if previous.phone_number != instance.phone_number:
-            generate_and_send_activation_code(instance)
+            code = generate_activation_code(instance)
+            get_sms_manager().send_activation_code(instance.phone_number, code)

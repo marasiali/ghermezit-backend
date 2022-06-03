@@ -7,3 +7,4 @@ django-allauth==0.50.0
 djangorestframework_simplejwt==5.1.0
 django-cors-headers==3.11.0
 ghasedakpack==0.1.9
+kavenegar==1.1.2
