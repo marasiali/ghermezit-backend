@@ -10,7 +10,7 @@ class SmsManager(ABC):
     default_sender = None
 
     @abstractmethod
-    def send(message: str, receptor: str, linenumber: str = default_sender) -> bool:
+    def send(self, message: str, receptor: str, linenumber: str = default_sender) -> bool:
         pass
 
     def send_activation_code(self, receptor, code, line_number: str = default_sender) -> bool:
