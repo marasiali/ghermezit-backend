@@ -55,6 +55,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'ghermezit.ratelimit_middleware.RateLimitMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -179,3 +180,15 @@ ACTIVATION_CODE_TIME_LIMIT = 120
 SMS_BACKEND = 'console' # values: 'console', 'ghasedak', 'kavenegar'
 GHASEDAK_API_KEY = ""
 KAVENEGAR_API_KEY = ""
+
+REQUEST_RATE_LIMIT = 40
+RATE_LIMIT_BLOCK_TIME = 300
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
