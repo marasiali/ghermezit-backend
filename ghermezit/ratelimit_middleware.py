@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.core.cache import cache
 
 REQUEST_RATE_LIMIT = settings.REQUEST_RATE_LIMIT
+RATE_LIMIT_TIMEOUT = settings.RATE_LIMIT_TTL
 
 class RateLimitMiddleware:
 
@@ -17,24 +18,26 @@ class RateLimitMiddleware:
             ip = request.META.get('REMOTE_ADDR')
         return ip
 
-    def rate_limit_check(self, request):
+    def exceed_rate_limit(self, request):
         current_ip = self.get_client_ip(request)
-        total_calls = cache.get(current_ip)
+        if cache.get('restricted:' + current_ip) :
+            return True
+        key = 'ratelimit:' + current_ip
+        total_calls = cache.get(key)
         if total_calls :
             if total_calls >= REQUEST_RATE_LIMIT :
-                return JsonResponse({'status':501, 'message':f'You have exhausted request rate limit! You can try after {cache.ttl(current_ip)} seconds.'})
+                cache.set('restricted:' + current_ip, 1, timeout=RATE_LIMIT_TIMEOUT)
+                return True
             else :
-                cache.set(current_ip, total_calls+1)
-                return None
-                #return JsonResponse({'status':200, 'message':f'You called this API', 'total_calls':total_calls})
-        cache.set(current_ip, 1)
-        return None
-        #return JsonResponse({'status':200, 'ip':get_client_ip(request)})
+                cache.set(key, total_calls+1, timeout=cache.ttl(key))
+                return False
+
+        cache.set(key, 1, timeout=RATE_LIMIT_TIMEOUT)
+        return False
 
     def __call__(self, request):
-        ratelimit_response = self.rate_limit_check(request)
-        if ratelimit_response :
-            return ratelimit_response
+        if self.exceed_rate_limit(request) :
+            return JsonResponse({'message':f'Too many requests! You can try after a minute.'}, status = 429)
 
         response = self.get_response(request)
         return response

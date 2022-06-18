@@ -181,12 +181,12 @@ SMS_BACKEND = 'console' # values: 'console', 'ghasedak', 'kavenegar'
 GHASEDAK_API_KEY = ""
 KAVENEGAR_API_KEY = ""
 
-REQUEST_RATE_LIMIT = 10
+REQUEST_RATE_LIMIT = 20
+RATE_LIMIT_TTL = 60
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379/1",
-        "TIMEOUT":60,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
