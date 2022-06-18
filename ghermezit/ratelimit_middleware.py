@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.core.cache import cache
 
 REQUEST_RATE_LIMIT = settings.REQUEST_RATE_LIMIT
-RATE_LIMIT_TIMEOUT = settings.RATE_LIMIT_TTL
+RATE_LIMIT_BLOCK_TIME = settings.RATE_LIMIT_BLOCK_TIME
 
 class RateLimitMiddleware:
 
@@ -26,18 +26,18 @@ class RateLimitMiddleware:
         total_calls = cache.get(key)
         if total_calls :
             if total_calls >= REQUEST_RATE_LIMIT :
-                cache.set('restricted:' + current_ip, 1, timeout=RATE_LIMIT_TIMEOUT)
+                cache.set('restricted:' + current_ip, 1, timeout=RATE_LIMIT_BLOCK_TIME)
                 return True
             else :
                 cache.set(key, total_calls+1, timeout=cache.ttl(key))
                 return False
 
-        cache.set(key, 1, timeout=RATE_LIMIT_TIMEOUT)
+        cache.set(key, 1, timeout=60)
         return False
 
     def __call__(self, request):
         if self.exceed_rate_limit(request) :
-            return JsonResponse({'message':f'Too many requests! You can try after a minute.'}, status = 429)
+            return JsonResponse({'message':f'Too many requests! You can try after 5 minutes.'}, status = 429)
 
         response = self.get_response(request)
         return response
