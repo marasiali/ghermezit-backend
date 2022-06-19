@@ -10,3 +10,4 @@ persiantools==3.0.1
 ghasedakpack==0.1.9
 kavenegar==1.1.2
 kafka-python==2.0.2
+django-redis==5.2.0
