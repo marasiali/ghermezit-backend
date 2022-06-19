@@ -179,3 +179,6 @@ ACTIVATION_CODE_TIME_LIMIT = 120
 SMS_BACKEND = 'console' # values: 'console', 'ghasedak', 'kavenegar'
 GHASEDAK_API_KEY = ""
 KAVENEGAR_API_KEY = ""
+
+KAFKA_ENABLED = False
+KAFKA_SMS_TOPIC = 'sms'
