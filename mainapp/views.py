@@ -16,6 +16,7 @@ from .serializers import ActivationCodeSerializer, CommentCreateSerializer, Pass
 from .permissions import IsAuthorOrReadOnly
 import requests
 from persiantools.jdatetime import JalaliDate
+from django.core.cache import cache
 
 
 class PostListCreate(generics.ListCreateAPIView):
@@ -273,12 +274,19 @@ class RegisterView(DefaultRegisterView):
             email.send_confirmation()
         return user
 
+
 class DayOccasions(APIView):
     def get(self, request):
         day = JalaliDate.today().day
         month = JalaliDate.today().month
         year = JalaliDate.today().year
-        api_url = "http://persiancalapi.ir/jalali/{year}/{month}/{day}".format(year=year, month=month, day=day)
-        response = requests.get(api_url)
-        dayOccasions = response.json()
-        return Response(dayOccasions)
+        date = "{year}/{month}/{day}".format(year=year, month=month, day=day)
+        if cache.get(date) is None:
+            api_url = f"http://persiancalapi.ir/jalali/{date}".format(date=date)
+            response = requests.get(api_url)
+            day_occasions = response.json()
+            cache.set(date, day_occasions, timeout=86400)
+        else:
+            day_occasions = cache.get(date)
+
+        return Response(day_occasions)
