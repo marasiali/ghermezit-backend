@@ -181,6 +181,9 @@ SMS_BACKEND = 'console' # values: 'console', 'ghasedak', 'kavenegar'
 GHASEDAK_API_KEY = ""
 KAVENEGAR_API_KEY = ""
 
+KAFKA_ENABLED = False
+KAFKA_SMS_TOPIC = 'sms'
+
 REQUEST_RATE_LIMIT = 40
 RATE_LIMIT_BLOCK_TIME = 300
 CACHES = {
