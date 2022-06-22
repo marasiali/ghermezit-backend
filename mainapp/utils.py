@@ -36,6 +36,7 @@ class KafkaSenderAdapter(SmsManager):
             'receptor': receptor,
             'linenumber': linenumber,
         })
+        self.kafka_producer.flush()
         if is_sent:
             print(f'Message sent to kafka for sending sms to {receptor} using {self.provider.provider_name}')
         else:

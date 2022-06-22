@@ -153,7 +153,9 @@ else:
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = 'statics/'
+# STATIC_ROOT = "/home/meqdad/uni/ghermezit-backend/static/"
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
@@ -177,20 +179,21 @@ REST_AUTH_REGISTER_SERIALIZERS = {
 AUTHENTICATION_BACKENDS = ('mainapp.backends.EmailOrPhoneModelBackend',)
 ACTIVATION_CODE_TIME_LIMIT = 120
 
-SMS_BACKEND = 'console' # values: 'console', 'ghasedak', 'kavenegar'
-GHASEDAK_API_KEY = ""
-KAVENEGAR_API_KEY = ""
+SMS_BACKEND = 'ghasedak' # values: 'console', 'ghasedak', 'kavenegar'
+GHASEDAK_API_KEY = "d67663c36b2c4005c5200bb507dea99b7873499597224863fd4b5f70fc0fd297"
+KAVENEGAR_API_KEY = "4872446F31566147573845324E523674372B386772426448343451384D543656"
 
-KAFKA_ENABLED = False
+KAFKA_ENABLED = True
 KAFKA_SMS_TOPIC = 'sms'
 
 REQUEST_RATE_LIMIT = 40
-RATE_LIMIT_BLOCK_TIME = 300
+RATE_LIMIT_BLOCK_TIME = 60
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "LOCATION": "redis://redis:6379/1",
         "OPTIONS": {
+            "PASSWORD": "MDNcVb924a",
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     }
